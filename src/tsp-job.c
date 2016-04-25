@@ -1,4 +1,4 @@
-/* impl�mentation des queues de jobs, nul besoin de lire dans un premier temps */
+/* impl�mentation des queues de jobs, nul besoin de lire dans un premier temps */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,6 +7,12 @@
 
 #include "tsp-types.h"
 #include "tsp-job.h"
+
+#include <pthread.h>
+
+/* la manipulation des jobs dans les threads 
+ * doit se faire en exclusion mutuelle */
+pthread_mutex_t mutex_job;
 
 struct tsp_job {
 	tsp_path_t path;
@@ -21,6 +27,8 @@ struct tsp_cell {
 };
 
 void init_queue (struct tsp_queue *q) {
+    /* on initialise le mutex */
+    pthread_mutex_init(&mutex_job, NULL);
     q->first = 0;
     q->last = 0;
     q->end = 0;
@@ -29,10 +37,17 @@ void init_queue (struct tsp_queue *q) {
 }
 
 int empty_queue (struct tsp_queue *q) {
-    return ((q->first == 0) && (q->end == 1));
+    /* on accede aux élements de la queue en exclusion mutuelle */
+    pthread_mutex_lock(&mutex_job);
+    int vide = (q->first == 0) && (q->end == 1);
+    pthread_mutex_unlock(&mutex_job);
+    if (vide)
+        pthread_mutex_destroy(&mutex_job);
+    return (vide);
 }
 
 void add_job (struct tsp_queue *q, tsp_path_t p, int hops, int len, uint64_t vpres) {
+    /* l'ajout d'un job se fait hors des threads, pas besoin d'exclusion mutuelle */
    struct tsp_cell *ptr;
    
    ptr = malloc (sizeof (*ptr));
@@ -59,6 +74,8 @@ void add_job (struct tsp_queue *q, tsp_path_t p, int hops, int len, uint64_t vpr
 int get_job (struct tsp_queue *q, tsp_path_t p, int *hops, int *len, uint64_t *vpres) {
    struct tsp_cell *ptr;
    
+   /* on accede aux élements de la queue en exclusion mutuelle */
+   pthread_mutex_lock(&mutex_job);
    if (q->first == 0) {
        return 0;
    }
@@ -80,7 +97,9 @@ int get_job (struct tsp_queue *q, tsp_path_t p, int *hops, int *len, uint64_t *v
    q->nb --;
    if (affiche_progress)
      printf("<!- %d / %d %% ->\n",q->nb, q->nbmax);
-
+   
+   pthread_mutex_unlock(&mutex_job);
+   
    return 1;
 } 
 
