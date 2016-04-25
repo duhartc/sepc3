@@ -63,7 +63,9 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
             //pthread_mutex_destroy(&mutex_cuts);
             if ( len + dist < minimum ) {
 		    minimum = len + dist;
+                    /* sol_len stocke le minimum */
 		    *sol_len = len + dist;
+                    /* on copie le chemin dans sol */
 		    memcpy(sol, path, nb_towns*sizeof(int));
 		    if (!quiet)
 		      print_solution (path, len+dist);
