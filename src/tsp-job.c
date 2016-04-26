@@ -37,12 +37,11 @@ void init_queue (struct tsp_queue *q) {
 }
 
 int empty_queue (struct tsp_queue *q) {
-    /* on accede aux élements de la queue en exclusion mutuelle */
-    pthread_mutex_lock(&mutex_job);
+     pthread_mutex_lock(&mutex_job);
     int vide = (q->first == 0) && (q->end == 1);
-    pthread_mutex_unlock(&mutex_job);
-    if (vide)
-        pthread_mutex_destroy(&mutex_job);
+    //if (vide)
+        //pthread_mutex_destroy(&mutex_job);
+     pthread_mutex_unlock(&mutex_job);
     return (vide);
 }
 

@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 
-/* dernier minimum trouvé */
+/* dernier minimum trouvï¿½ */
 extern int minimum;
 
 int present (int city, int hops, tsp_path_t path, uint64_t vpres);
