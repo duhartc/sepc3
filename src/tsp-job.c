@@ -41,7 +41,7 @@ int empty_queue (struct tsp_queue *q) {
     int vide = (q->first == 0) && (q->end == 1);
     //if (vide)
         //pthread_mutex_destroy(&mutex_job);
-     pthread_mutex_unlock(&mutex_job);
+    pthread_mutex_unlock(&mutex_job);
     return (vide);
 }
 

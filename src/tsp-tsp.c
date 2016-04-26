@@ -9,7 +9,7 @@
 #include "tsp-lp.h"
 #include "tsp-hkbound.h"
 
-#include <pthread.h>
+
 
 /* dernier minimum trouv� */
 int minimum;
@@ -27,7 +27,7 @@ int present (int city, int hops, tsp_path_t path, uint64_t vpres)
 
 
 
-void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len)
+void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len, pthread_mutex_t* mutex_maj_min )
 {
     if (len + cutprefix[(nb_towns-hops)] >= minimum) {
       pthread_mutex_lock(&mutex_cuts);
@@ -62,9 +62,11 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
 	    int dist = tsp_distance[me][0]; // retourner en 0
             //pthread_mutex_destroy(&mutex_cuts);
             if ( len + dist < minimum ) {
+                    pthread_mutex_lock(mutex_maj_min);
 		    minimum = len + dist;
                     /* sol_len stocke le minimum */
 		    *sol_len = len + dist;
+                    pthread_mutex_unlock(mutex_maj_min);
                     /* on copie le chemin dans sol */
 		    memcpy(sol, path, nb_towns*sizeof(int));
 		    if (!quiet)
@@ -77,7 +79,7 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
                 path[hops] = i;
 		vpres |= (1<<i);
                 int dist = tsp_distance[me][i];
-                tsp (hops + 1, len + dist, vpres, path, cuts, sol, sol_len);
+                tsp (hops + 1, len + dist, vpres, path, cuts, sol, sol_len, mutex_maj_min);
 		vpres &= (~(1<<i));
             }
         }
